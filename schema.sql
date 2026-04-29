@@ -1,4 +1,3 @@
--- Apagar tabelas se existirem para evitar erros ao reiniciar
 DROP TABLE IF EXISTS posturas;
 DROP TABLE IF EXISTS categorias;
 
