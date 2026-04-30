@@ -13,7 +13,7 @@ CREATE TABLE posturas (
     instrucoes TEXT NOT NULL,
     beneficios TEXT,
     contraindicacoes TEXT,
-    nivel TEXT CHECK(nivel IN ('Iniciante', 'Intermédio', 'Avançado')),
+    nivel TEXT CHECK (nivel IN ('Iniciante', 'Intermedio', 'Avancado')),
     duracao_estimada INTEGER,
     categoria_id INTEGER,
     FOREIGN KEY (categoria_id) REFERENCES categorias (id)

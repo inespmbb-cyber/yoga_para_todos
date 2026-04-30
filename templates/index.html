@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yoga para Todos</title>
+    
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/安定/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; }
+        .hero-section { background: #6c5ce7; color: white; padding: 60px 0; }
+        .card-postura { transition: transform 0.2s; }
+        .card-postura:hover { transform: scale(1.02); }
+    </style>
+</head>
+<body>
+
+<div class="hero-section text-center">
+    <h1>🧘‍♀️ Yoga para Todos</h1>
+    <p>A tua biblioteca digital de posturas e bem-estar</p>
+</div>
+
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Biblioteca de Posturas</h2>
+        <span class="badge bg-primary">{{ posturas|length }} Posturas encontradas</span>
+    </div>
+
+    <div class="row">
+        {% for postura in posturas %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm card-postura">
+                <div class="card-body">
+                    <h5 class="card-title text-primary">{{ postura['titulo'] }}</h5>
+                    <h6 class="card-subtitle mb-2 text-muted">{{ postura['nivel'] }}</h6>
+                    <p class="card-text">{{ postura['descricao'] }}</p>
+                </div>
+                <div class="card-footer bg-transparent border-top-0">
+                    <button class="btn btn-outline-primary btn-sm w-100">Ver Detalhes</button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<footer class="text-center mt-5 py-4 text-muted">
+    <p>&copy; 2024 Projeto Yoga para Todos - Inês Branco</p>
+</footer>
+
+</body>
+</html>
