@@ -19,6 +19,8 @@
 <div class="hero-section text-center">
     <h1>🧘‍♀️ Yoga para Todos</h1>
     <p>A tua biblioteca digital de posturas e bem-estar</p>
+    <a href="{{ url_for('criar') }}" class="btn btn-light btn-lg mt-3">Adicionar Nova Postura</a>
+
 </div>
 
 <div class="container mt-5">
@@ -37,7 +39,7 @@
                     <p class="card-text">{{ postura['descricao'] }}</p>
                 </div>
                 <div class="card-footer bg-transparent border-top-0">
-                    <button class="btn btn-outline-primary btn-sm w-100">Ver Detalhes</button>
+                    <a href="{{ url_for('detalhes', postura_id=postura['id']) }}" class="btn btn-outline-primary btn-sm w-100">Ver Detalhes</a>
                 </div>
             </div>
         </div>

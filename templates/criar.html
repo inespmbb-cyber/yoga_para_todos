@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Nova Postura - Yoga para Todos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+<div class="container mt-5">
+    <h2>Adicionar Nova Postura</h2>
+    <form method="post" class="bg-white p-4 shadow-sm rounded">
+        <div class="mb-3">
+            <label class="form-label">Título</label>
+            <input type="text" name="titulo" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Descrição Curta</label>
+            <textarea name="descricao" class="form-control" rows="2" required></textarea>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Instruções</label>
+            <textarea name="instrucoes" class="form-control" rows="4" required></textarea>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Nível</label>
+            <select name="nivel" class="form-select">
+                <option value="Iniciante">Iniciante</option>
+                <option value="Intermedio">Intermédio</option>
+                <option value="Avancado">Avançado</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-success">Guardar Postura</button>
+        <a href="/" class="btn btn-link">Cancelar</a>
+    </form>
+</div>
+</body>
+</html>
