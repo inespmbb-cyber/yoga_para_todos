@@ -1,8 +1,6 @@
 import sqlite3
-import random
 import os 
 from flask import Flask, render_template, request, redirect, url_for, flash
-
 
 app = Flask(__name__)
 
@@ -12,28 +10,48 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'uma_chave_muito_secreta
 
 # Função para ligar à base de dados
 def get_db_connection():
-    conn = sqlite3.connect('database.db')
-    conn.row_factory = sqlite3.Row
+    # Define o caminho absoluto para o banco de dados na raiz do projeto
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    db_path = os.path.join(base_dir, 'database.db')
+    conn = sqlite3.connect(db_path)
+    # Esta linha permite aceder aos dados como postura['titulo'] em vez de postura[0]
+    conn.row_factory = sqlite3.Row 
     return conn
 
-
 # Rota para a página principal, onde mostramos a lista de posturas. Se o utilizador
-# usar o campo de pesquisa, filtramos as posturas para mostrar apenas aquelas que
-# não contenham a palavra escrita no campo de contra-indicações.
+# usar o campo de pesquisa 'busca', procuramos por correspondências no título.
 @app.route('/')
 def index():
-    evitar = request.args.get('evitar')
+    busca = request.args.get('busca', '')
+    nivel_filtro = request.args.get('nivel_filtro', '')
+    evitar = request.args.get('evitar', '')
+    
     conn = get_db_connection()
     
+    # Base da query
+    query = "SELECT * FROM posturas WHERE 1=1"
+    params = []
+
+    # Pesquisa por Título (mais robusta e insensível a maiúsculas/minúsculas)
+    if busca:
+        query += " AND LOWER(titulo) LIKE LOWER(?)"
+        params.append(f'%{busca.lower()}%')
+    
+    # Filtro por Nível
+    if nivel_filtro:
+        query += " AND nivel = ?"
+        params.append(nivel_filtro)
+
+    # Filtro de Contraindicações (Evitar)
     if evitar:
-        # Procuramos posturas que NÃO contenham a palavra escrita
-        # Usamos LOWER para a pesquisa não ser sensível a maiúsculas
-        query = "SELECT * FROM posturas WHERE contraindicacoes NOT LIKE ? OR contraindicacoes IS NULL"
-        posturas = conn.execute(query, ('%' + evitar + '%',)).fetchall()
-    else:
-        posturas = conn.execute('SELECT * FROM posturas').fetchall()
-        
+        query += " AND (LOWER(contraindicacoes) NOT LIKE ? OR contraindicacoes IS NULL)"
+        params.append(f'%{evitar.lower()}%')
+
+    query += " ORDER BY titulo COLLATE NOCASE ASC"
+    
+    posturas = conn.execute(query, params).fetchall()
     conn.close()
+    
     return render_template('index.html', posturas=posturas)
 
 
@@ -59,17 +77,16 @@ def detalhes(postura_id):
 @app.route('/criar', methods=('GET', 'POST'))
 def criar():
     if request.method == 'POST':
-        titulo = request.form.get('titulo', 'Sem Título')
+        titulo = request.form.get('titulo', 'Sem Título').strip()
         nivel = request.form.get('nivel', 'Iniciante')
-        descricao = request.form.get('descricao', '')
         fase_aula = request.form.get('fase_aula', 'Desenvolvimento')
         contraindicacoes = request.form.get('contraindicacoes', '')
         instrucoes = request.form.get('instrucoes', '') # Se estiver vazio, fica ''
-        desc_curta = request.form.get('desc_curta', '')
+        descricao = request.form.get('descricao')
 
         conn = get_db_connection()
-        conn.execute('INSERT INTO posturas (titulo, descricao, instrucoes, nivel, contraindicacoes, fase_aula, categoria_id) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                     (titulo, descricao, instrucoes, nivel, contraindicacoes, fase_aula, 1)) # Categoria 1 por defeito para já
+        conn.execute('INSERT INTO posturas (titulo, descricao, instrucoes, nivel, contraindicacoes, fase_aula) VALUES (?, ?, ?, ?, ?, ?)',
+                     (titulo, descricao, instrucoes, nivel, contraindicacoes, fase_aula))
         conn.commit()
         conn.close()
         flash('Postura criada com sucesso!', 'success')
@@ -87,7 +104,7 @@ def editar(id):
     postura = conn.execute('SELECT * FROM posturas WHERE id = ?', (id,)).fetchone()
 
     if request.method == 'POST':
-        titulo = request.form['titulo']
+        titulo = request.form['titulo'].strip()
         descricao = request.form['descricao']
         instrucoes = request.form['instrucoes']
         nivel = request.form['nivel']
@@ -120,30 +137,45 @@ def apagar(id):
     flash('Postura apagada com sucesso!', 'danger')
     return redirect(url_for('index'))
 
-@app.route('/gerar_sequencia')
-def gerar_sequencia():
+# Rota para gerar uma sequência inteligente, onde o utilizador pode escolher
+# o tempo e o nível de dificuldade
+@app.route('/gerar_sequencia_inteligente', methods=['POST'])
+def gerar_sequencia_inteligente():
+    tempo = int(request.form.get('tempo', 20))
+    nivel = request.form.get('nivel')
+    evitar = request.form.get('evitar', '').lower()
+
+    n_posturas = int(tempo / 2)
+    
     conn = get_db_connection()
     
-    # Procuramos posturas para cada fase
-    aquecimento = conn.execute("SELECT * FROM posturas WHERE fase_aula = 'Aquecimento'").fetchall()
-    desenvolvimento = conn.execute("SELECT * FROM posturas WHERE fase_aula = 'Desenvolvimento'").fetchall()
-    relaxamento = conn.execute("SELECT * FROM posturas WHERE fase_aula = 'Relaxamento'").fetchall()
+    # Construção dinâmica da query para evitar o bug do filtro vazio
+    query = "SELECT * FROM posturas WHERE (nivel = ? OR nivel = 'Iniciante')"
+    params = [nivel]
+
+    if evitar:
+        query += " AND (LOWER(contraindicacoes) NOT LIKE ? OR contraindicacoes IS NULL)"
+        params.append(f'%{evitar}%')
+
+    query += """
+        ORDER BY 
+            CASE fase_aula 
+                WHEN 'Aquecimento' THEN 1 
+                WHEN 'Desenvolvimento' THEN 2 
+                WHEN 'Relaxamento' THEN 3 
+            END, RANDOM()
+        LIMIT ?
+    """
+    params.append(n_posturas)
     
+    sequencia = conn.execute(query, params).fetchall()
     conn.close()
 
-    # Verificamos se temos pelo menos uma de cada para não dar erro
-    if not aquecimento or not desenvolvimento or not relaxamento:
-        flash('Precisas de ter pelo menos uma postura em cada fase (Aquecimento, Desenvolvimento e Relaxamento) para gerar uma sequência!', 'warning')
-        return redirect(url_for('index'))
+    # Se a sequência vier vazia, avisa o utilizador ou mostra erro
+    if not sequencia:
+        return "Nenhuma postura encontrada para estes filtros. Tenta mudar o nível ou remover limitações."
 
-    # Seleção aleatória
-    sequencia = [
-        random.choice(aquecimento),
-        random.choice(desenvolvimento),
-        random.choice(relaxamento)
-    ]
-    
-    return render_template('sequencia.html', sequencia=sequencia)
+    return render_template('sequencia.html', sequencia=sequencia, tempo=tempo, nivel=nivel)
 
 if __name__ == '__main__':
     app.run(debug=True)

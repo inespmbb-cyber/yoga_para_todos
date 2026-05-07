@@ -11,6 +11,16 @@
         .hero-section { background: #6c5ce7; color: white; padding: 60px 0; }
         .card-postura { transition: transform 0.2s; }
         .card-postura:hover { transform: scale(1.02); }
+        .card {
+    transition: transform 0.2s;
+    border-radius: 15px;
+}
+.card:hover {
+    transform: translateY(-5px);
+}
+.hero-section {
+    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%) !important;
+}
     </style>
 </head>
 <body>
@@ -38,18 +48,80 @@
     {% endwith %}
 </div>
 
-<div class="hero-section text-center">
-    <h1>🧘‍♀️ Yoga para Todos</h1>
-    <p>A tua biblioteca digital de posturas e bem-estar</p>
-    <a href="{{ url_for('criar') }}" class="btn btn-light btn-lg mt-3">Adicionar Nova Postura</a>
-
+<div class="hero-section text-center py-5 bg-primary text-white mb-4 rounded shadow">
+    <h1 class="display-4 fw-bold">🧘‍♀️ Yoga para Todos</h1>
+    <p class="lead">A tua biblioteca digital de posturas e bem-estar</p>
+    <a href="{{ url_for('criar') }}" class="btn btn-light btn-lg mt-2 shadow-sm">Add Nova Postura</a>
 </div>
 
-<div class="container mt-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Biblioteca de Posturas</h2>
-        <span class="badge bg-primary">{{ posturas|length }} Posturas encontradas</span>
+<div class="container">
+    <div class="row g-4">
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <h3 class="h5 fw-bold mb-3">🔍 Pesquisar na Biblioteca</h3>
+                    <form action="/" method="GET">
+                        <div class="mb-3">
+                            <input type="text" name="busca" class="form-control form-control-lg" placeholder="Nome da postura..." value="{{ request.args.get('busca', '') }}">
+                        </div>
+                        <div class="d-flex gap-2">
+                            <select name="nivel_filtro" class="form-select">
+                                <option value="">Todos os Níveis</option>
+                                <option value="Iniciante" {% if request.args.get('nivel_filtro') == 'Iniciante' %}selected{% endif %}>Iniciante</option>
+                                <option value="Intermédio" {% if request.args.get('nivel_filtro') == 'Intermédio' %}selected{% endif %}>Intermédio</option>
+                                <option value="Avançado" {% if request.args.get('nivel_filtro') == 'Avançado' %}selected{% endif %}>Avançado</option>
+                            </select>
+                            <button type="submit" class="btn btn-primary px-4">Filtrar</button>
+                            <a href="/" class="btn btn-outline-secondary">Limpar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm bg-light h-100">
+                <div class="card-body p-4">
+                    <h3 class="h5 fw-bold mb-3 text-primary">✨ Gerador de Aula Personalizada</h3>
+                    <form action="/gerar_sequencia_inteligente" method="POST">
+                        <div class="row g-2">
+                            <div class="col-md-4">
+                                <label class="small fw-bold">Duração</label>
+                                <select name="tempo" class="form-select">
+                                    <option value="20">20 Minutos</option>
+                                    <option value="30">30 Minutos</option>
+                                    <option value="40">40 Minutos</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="small fw-bold">Nível</label>
+                                <select name="nivel" class="form-select">
+                                    <option value="Iniciante">Iniciante</option>
+                                    <option value="Intermédio">Intermédio</option>
+                                    <option value="Avançado">Avançado</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="small fw-bold">Limitação</label>
+                                <input type="text" name="evitar" class="form-control" placeholder="Ex: pulso, joelho">
+                            </div>
+                            <div class="col-12 mt-3">
+                                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">GERAR SEQUÊNCIA LÓGICA</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
+</div>
+
+<hr class="my-5">
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0">Biblioteca de Posturas</h2>
+    <span class="badge bg-secondary">{{ posturas|length }} Posturas encontradas</span>
+</div>
 
 <div class="card mb-4 shadow-sm">
     <div class="card-body">
@@ -73,7 +145,7 @@
                 <div class="card-body">
                     <h5 class="card-title text-primary">{{ postura['titulo'] }}</h5>
                     <h6 class="card-subtitle mb-2 text-muted">{{ postura['nivel'] }}</h6>
-                    <p class="card-text">{{ postura['descricao'] }}</p>
+                    <p class="card-text"><strong>Sobre a postura:</strong> {{ postura['descricao'] }}</p>
                 </div>
                 <div class="card-footer bg-transparent border-top-0">
                     <a href="{{ url_for('detalhes', postura_id=postura['id']) }}" class="btn btn-outline-primary btn-sm w-100">Ver Detalhes</a>
@@ -92,4 +164,3 @@
 
 </body>
 </html>
-

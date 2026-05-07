@@ -1,9 +1,10 @@
-
-venv/
+# Python
 __pycache__/
-*.pyc
-.env
-instance/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+
+# Base de dados local
 database.db
-
-
+.env

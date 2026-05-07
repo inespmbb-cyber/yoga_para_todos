@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>A Tua Sequência - Yoga para Todos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <div class="container mt-5">
+    <div class="list-group shadow-sm">
+        {% for postura in sequencia %}
+        <div class="list-group-item p-4">
+            <h4 class="text-primary">{{ loop.index }}. {{ postura['titulo'] }}</h4>
+            <p class="text-muted"><em>{{ postura['fase_aula'] }}</em></p>
+            <p style="white-space: pre-line;">{{ postura['instrucoes'].replace(';', '\n') }}</p>
+        </div>
+        {% else %}
+        <div class="alert alert-warning">Ups! Não encontrámos posturas suficientes para esta aula.</div>
+        {% endfor %}
+    </div>
+</div>
+
+            <div class="text-center mt-4">
+                <a href="/" class="btn btn-dark">Voltar ao Início</a>
+                <button onclick="window.print()" class="btn btn-outline-secondary">Imprimir Plano</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

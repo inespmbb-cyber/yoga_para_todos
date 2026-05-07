@@ -37,24 +37,24 @@
                     <a href="/" class="btn btn-outline-secondary mb-3">← Voltar à Lista</a>
                     <h1 class="display-4 text-primary">{{ postura['titulo'] }}</h1>
                     <span class="badge bg-info mb-4">{{ postura['nivel'] }}</span>
-                    
+
                     <h3>Sobre a postura</h3>
                     <p class="lead">{{ postura['descricao'] }}</p>
-                    
+
                     <hr>
-                    
+
                     <h3>Instruções passo a passo</h3>
-                    <div class="p-3 bg-white border rounded">
-                        {{ postura['instrucoes'] }}
-                    </div>
-                    <div class="mt-4 d-flex gap-2">
-                        <a href="{{ url_for('editar', id=postura['id']) }}" class="btn btn-warning">Editar</a>
-    
-                        <form action="{{ url_for('apagar', id=postura['id']) }}" method="POST" onsubmit="return confirm('Tens a certeza que queres apagar esta postura?');">
-                            <button type="submit" class="btn btn-danger">Apagar</button>
-                        </form>
+                    <div class="bg-light p-4 rounded border">
+                        <p style="white-space: pre-line;">
+                            {{ postura['instrucoes'].replace('; ', '\n').replace(';', '\n') }}
+                        </p>
                     </div>
 
+                    <div class="mt-4">
+                        <a href="{{ url_for('editar', id=postura['id']) }}" class="btn btn-warning">Editar</a>
+                        <form action="{{ url_for('apagar', id=postura['id']) }}" method="POST" style="display:inline;">
+                            <button type="submit" class="btn btn-danger" onclick="return confirm('Apagar esta postura?')">Apagar</button>
+                        </form>
                     </div>
                 </div>
             </div>
