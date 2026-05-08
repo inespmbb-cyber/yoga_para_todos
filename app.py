@@ -147,28 +147,30 @@ def gerar_sequencia_inteligente():
 
     n_posturas = int(tempo / 2)
     
+    # Definir distribuição (ex: 20% Aquecimento, 60% Desenvolvimento, 20% Relaxamento)
+    n_aq = max(1, int(n_posturas * 0.2))
+    n_rel = max(1, int(n_posturas * 0.2))
+    n_des = max(1, n_posturas - n_aq - n_rel)
+
     conn = get_db_connection()
     
-    # Construção dinâmica da query para evitar o bug do filtro vazio
-    query = "SELECT * FROM posturas WHERE (nivel = ? OR nivel = 'Iniciante')"
-    params = [nivel]
+    def buscar_fase(fase, limite):
+        query = "SELECT * FROM posturas WHERE (nivel = ? OR nivel = 'Iniciante') AND fase_aula = ?"
+        params = [nivel, fase]
+        if evitar:
+            query += " AND (LOWER(contraindicacoes) NOT LIKE ? OR contraindicacoes IS NULL)"
+            params.append(f'%{evitar}%')
+        query += " ORDER BY RANDOM() LIMIT ?"
+        params.append(limite)
+        return conn.execute(query, params).fetchall()
 
-    if evitar:
-        query += " AND (LOWER(contraindicacoes) NOT LIKE ? OR contraindicacoes IS NULL)"
-        params.append(f'%{evitar}%')
+    # Procura posturas para cada fase de forma independente
+    lista_aq = buscar_fase('Aquecimento', n_aq)
+    lista_des = buscar_fase('Desenvolvimento', n_des)
+    lista_rel = buscar_fase('Relaxamento', n_rel)
 
-    query += """
-        ORDER BY 
-            CASE fase_aula 
-                WHEN 'Aquecimento' THEN 1 
-                WHEN 'Desenvolvimento' THEN 2 
-                WHEN 'Relaxamento' THEN 3 
-            END, RANDOM()
-        LIMIT ?
-    """
-    params.append(n_posturas)
-    
-    sequencia = conn.execute(query, params).fetchall()
+    # Junta as listas mantendo a ordem correta da aula
+    sequencia = lista_aq + lista_des + lista_rel
     conn.close()
 
     # Se a sequência vier vazia, avisa o utilizador ou mostra erro
